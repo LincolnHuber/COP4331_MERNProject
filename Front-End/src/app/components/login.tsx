@@ -8,7 +8,7 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -22,14 +22,32 @@ export function Login() {
       return;
     }
 
-    // For demo purposes, accept any credentials
-    navigate("/");
+    try {
+        const response = await fetch("/api/login", {        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
+        return;
+      }
+
+      localStorage.setItem("user_data", JSON.stringify(data.user));
+      navigate("/");
+    } catch (err) {
+      setError("Could not connect to server");
+    }
   };
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-orange-900/20 via-black to-black" />
-      
+
       <div className="relative w-full max-w-md">
         {/* Back button */}
         <button

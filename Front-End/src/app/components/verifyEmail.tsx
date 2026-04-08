@@ -44,11 +44,7 @@ export function VerifyEmail() {
     if (verificationCode.length === 6 && /^\d+$/.test(verificationCode)) {
       setIsVerified(true);
       sessionStorage.removeItem("pendingEmail");
-      
-      // Redirect to store after 2 seconds
-      setTimeout(() => {
-        navigate("/");
-      }, 2000);
+
     } else {
       setError("Invalid verification code. Please enter a 6-digit code.");
     }
@@ -58,7 +54,7 @@ export function VerifyEmail() {
 
   const handleResend = () => {
     if (resendTimer > 0) return;
-    
+
     // Simulate resending email
     console.log(`Verification email resent to ${email}`);
     setResendTimer(60);
@@ -70,7 +66,7 @@ export function VerifyEmail() {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-900/20 via-black to-black" />
-        
+
         <div className="relative w-full max-w-md">
           <div className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-8 text-center">
             <div className="inline-block p-4 bg-green-500/10 rounded-full mb-6">
@@ -78,12 +74,15 @@ export function VerifyEmail() {
             </div>
             <h1 className="text-3xl font-bold mb-2">Email Verified!</h1>
             <p className="text-slate-400 mb-6">
-              Your account has been successfully verified. Redirecting you to the store...
+              Your account has been successfully verified.
             </p>
-            <div className="flex items-center justify-center gap-2 text-orange-400">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Loading...</span>
-            </div>
+
+            <button
+              onClick={() => navigate("/login")}
+              className="w-full bg-gradient-to-r from-orange-600 to-orange-600 hover:from-orange-700 hover:to-orange-700 text-white font-medium py-3 rounded-lg transition-all duration-200"
+            >
+              Continue to Login
+            </button>
           </div>
         </div>
       </div>
@@ -93,7 +92,7 @@ export function VerifyEmail() {
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-orange-900/20 via-black to-black" />
-      
+
       <div className="relative w-full max-w-md">
         <div className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-8">
           {/* Header */}

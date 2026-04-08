@@ -9,11 +9,10 @@ export function SignUp() {
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Basic validation
     if (!email || !password || !username) {
       setError("Please fill in all fields");
       return;
@@ -29,17 +28,34 @@ export function SignUp() {
       return;
     }
 
-    // Store email in sessionStorage for verification page
-    sessionStorage.setItem("pendingEmail", email);
-    
-    // Navigate to verification page
-    navigate("/verify-email");
+    try {
+      const response = await fetch("/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        setError(data.error || "Sign up failed");
+        return;
+      }
+
+      sessionStorage.setItem("pendingEmail", email);
+      navigate("/verify-email");
+    } catch (err) {
+      setError("Could not connect to server");
+    }
   };
+  
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-orange-900/20 via-black to-black" />
-      
+
       <div className="relative w-full max-w-md">
         {/* Back button */}
         <button
