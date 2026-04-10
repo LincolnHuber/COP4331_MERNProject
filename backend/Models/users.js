@@ -21,7 +21,10 @@ const userSchema = new mongoose.Schema({
   gamesLibrary: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Game'
-  }]
+  }],
+  isVerified: { 
+    type: Boolean, default: false 
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

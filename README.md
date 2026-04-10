@@ -1,2 +1,2 @@
 # COP4331_MERNProject
-DEVELOPER TEST BRANCH
+Main stable branch for the citrus market MERN project
