@@ -18,7 +18,6 @@ export function Store() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
-
   const featuredGame = [...games].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
 
   const handleLogout = () => {
@@ -59,7 +58,8 @@ export function Store() {
     const matchesMinPrice = minPrice === "" || game.price >= Number(minPrice);
     const matchesMaxPrice = maxPrice === "" || game.price <= Number(maxPrice);
 
-    return matchesSearch && matchesFilter && matchesMinPrice && matchesMaxPrice;
+    // Fixed typo here: changed matchesFilter to matchesQuickFilter
+    return matchesSearch && matchesQuickFilter && matchesMinPrice && matchesMaxPrice;
   });
 
   return (
@@ -145,7 +145,7 @@ export function Store() {
         </div>
       </header>
 
-      {featuredGame ? (
+      {featuredGame && (
         <section className="relative h-[500px] overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black" />
           <img
@@ -175,22 +175,23 @@ export function Store() {
                         ? "bg-slate-700 hover:bg-slate-600"
                         : "bg-orange-600 hover:bg-orange-700"
                     }`}
-                >
-                  {isGameOwned(games[5].id)
-                    ? "In Library"
-                    : `Buy Now - $${games[5].price}`}
-                </button>
-                <button
-                  onClick={() => navigate(`/game/${games[5].id}`)}
-                  className="px-8 py-3 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
-                >
-                  Learn More
-                </button>
+                  >
+                    {isGameOwned(featuredGame.id)
+                      ? "In Library"
+                      : `Buy Now - $${featuredGame.price}`}
+                  </button>
+                  <button
+                    onClick={() => navigate(`/game/${featuredGame.id}`)}
+                    className="px-8 py-3 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                  >
+                    Learn More
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex flex-col gap-4 mb-8">
@@ -200,30 +201,33 @@ export function Store() {
             <div className="flex gap-2">
               <button
                 onClick={() => setActiveFilter("all")}
-                className={`px-4 py-2 rounded-xl transition-colors text-sm ${activeFilter === "all"
-                  ? "bg-slate-800 text-white"
-                  : "bg-slate-900 hover:bg-slate-800 text-slate-400"
-                  }`}
+                className={`px-4 py-2 rounded-xl transition-colors text-sm ${
+                  activeFilter === "all"
+                    ? "bg-slate-800 text-white"
+                    : "bg-slate-900 hover:bg-slate-800 text-slate-400"
+                }`}
               >
                 All
               </button>
 
               <button
                 onClick={() => setActiveFilter("sale")}
-                className={`px-4 py-2 rounded-xl transition-colors text-sm ${activeFilter === "sale"
-                  ? "bg-slate-800 text-white"
-                  : "bg-slate-900 hover:bg-slate-800 text-slate-400"
-                  }`}
+                className={`px-4 py-2 rounded-xl transition-colors text-sm ${
+                  activeFilter === "sale"
+                    ? "bg-slate-800 text-white"
+                    : "bg-slate-900 hover:bg-slate-800 text-slate-400"
+                }`}
               >
                 On Sale
               </button>
 
               <button
                 onClick={() => setActiveFilter("new")}
-                className={`px-4 py-2 rounded-xl transition-colors text-sm ${activeFilter === "new"
-                  ? "bg-slate-800 text-white"
-                  : "bg-slate-900 hover:bg-slate-800 text-slate-400"
-                  }`}
+                className={`px-4 py-2 rounded-xl transition-colors text-sm ${
+                  activeFilter === "new"
+                    ? "bg-slate-800 text-white"
+                    : "bg-slate-900 hover:bg-slate-800 text-slate-400"
+                }`}
               >
                 New
               </button>
@@ -276,110 +280,90 @@ export function Store() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGames.map((game) => (
-            <div
-              key={game.id}
-              className="bg-slate-900 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 border border-slate-800 hover:border-orange-500/50"
-            >
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={game.imageUrl}
-                  alt={game.title}
-                  className="w-full h-full object-cover"
-                />
-                {game.originalPrice && (
-                  <div className="absolute top-2 right-2 bg-orange-600 px-2 py-1 rounded flex items-center gap-1">
-                    <Tag className="w-3 h-3" />
-                    <span className="text-xs">
-                      {Math.round(
-                        ((game.originalPrice - game.price) / game.originalPrice) * 100
-                      )}
-                      % OFF
-                    </span>
+          {filteredGames.map((game) => {
+            const hasDiscount = game.originalPrice && game.originalPrice > game.price;
+            const discountPercent = hasDiscount
+              ? Math.round(((game.originalPrice - game.price) / game.originalPrice) * 100)
+              : 0;
+
+            return (
+              <div
+                key={game.id}
+                className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 transition-all duration-300 hover:scale-105 hover:border-orange-500/50"
+              >
+                <div className="relative h-48 overflow-hidden">
+                  <img
+                    src={game.imageUrl || ""}
+                    alt={game.title}
+                    className="h-full w-full object-cover"
+                  />
+                  {hasDiscount && (
+                    <div className="absolute right-2 top-2 flex items-center gap-1 rounded bg-orange-600 px-2 py-1">
+                      <Tag className="h-3 w-3" />
+                      <span className="text-xs">{discountPercent}% OFF</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4">
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <h4
+                      onClick={() => navigate(`/game/${game.id}`)}
+                      className="cursor-pointer text-lg font-semibold transition-colors hover:text-orange-400"
+                    >
+                      {game.title}
+                    </h4>
+                    <div className="flex items-center gap-1 text-yellow-400">
+                      <Star className="h-4 w-4 fill-current" />
+                      <span className="text-sm">{game.rating || 0}</span>
+                    </div>
                   </div>
-                )}
+
+                  <p className="mb-3 text-sm text-slate-400">{getGameGenre(game)}</p>
+
+                  <div className="mb-4 flex flex-wrap gap-1">
+                    {game.tags?.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded bg-slate-800 px-2 py-1 text-xs"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      {hasDiscount && (
+                        <span className="text-sm text-slate-500 line-through">
+                          ${game.originalPrice.toFixed(2)}
+                        </span>
+                      )}
+                      <span className="text-xl font-bold text-orange-400">
+                        ${game.price.toFixed(2)}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        isGameOwned(game.id)
+                          ? navigate("/library")
+                          : handleAddToCart(game.id)
+                      }
+                      className={`rounded-lg px-4 py-2 transition-colors ${
+                        isGameOwned(game.id)
+                          ? "bg-slate-700 hover:bg-slate-600"
+                          : "bg-orange-600 hover:bg-orange-700"
+                      }`}
+                    >
+                      {isGameOwned(game.id) ? "In Library" : "Add to Cart"}
+                    </button>
+                  </div>
+                </div>
               </div>
-
-                return (
-                  <div
-                    key={game.id}
-                    className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 transition-all duration-300 hover:scale-105 hover:border-orange-500/50"
-                  >
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={game.imageUrl || ""}
-                        alt={game.title}
-                        className="h-full w-full object-cover"
-                      />
-                      {discount > 0 && (
-                        <div className="absolute right-2 top-2 flex items-center gap-1 rounded bg-orange-600 px-2 py-1">
-                          <Tag className="h-3 w-3" />
-                          <span className="text-xs">{discount}% OFF</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-4">
-                      <div className="mb-2 flex items-start justify-between gap-3">
-                        <h4
-                          onClick={() => navigate(`/game/${game.id}`)}
-                          className="cursor-pointer text-lg font-semibold transition-colors hover:text-orange-400"
-                        >
-                          {game.title}
-                        </h4>
-                        <div className="flex items-center gap-1 text-yellow-400">
-                          <Star className="h-4 w-4 fill-current" />
-                          <span className="text-sm">{game.rating || 0}</span>
-                        </div>
-                      </div>
-
-                      <p className="mb-3 text-sm text-slate-400">{getGameGenre(game)}</p>
-
-                      <div className="mb-4 flex flex-wrap gap-1">
-                        {game.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded bg-slate-800 px-2 py-1 text-xs"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          {game.originalPrice && (
-                            <span className="text-sm text-slate-500 line-through">
-                              ${game.originalPrice.toFixed(2)}
-                            </span>
-                          )}
-                          <span className="text-xl font-bold text-orange-400">
-                            ${game.price.toFixed(2)}
-                          </span>
-                        </div>
-
-                        <button
-                          onClick={() =>
-                            isGameOwned(game.id)
-                              ? navigate("/library")
-                              : handleAddToCart(game.id)
-                          }
-                          className={`rounded-lg px-4 py-2 transition-colors ${
-                            isGameOwned(game.id)
-                              ? "bg-slate-700 hover:bg-slate-600"
-                              : "bg-orange-600 hover:bg-orange-700"
-                          }`}
-                        >
-                          {isGameOwned(game.id) ? "In Library" : "Add to Cart"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
+            );
+          })}
+        </div>
       </section>
 
       <footer className="border-t border-slate-800 mt-20">
