@@ -5,6 +5,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = require('./Models/users');
+const Game = require('./Models/games');
 const authRoutes = require('./routes/auth');
 const gameRoutes = require('./routes/games');
 const userRoutes = require('./routes/users');
