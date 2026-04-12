@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
+import { useStoredUser } from "../lib/authStorage";
+import { getGameGenre } from "../lib/gameUtils";
 import { useCart } from "./cartContext";
-
-
 
 export function Cart() {
     const navigate = useNavigate();
@@ -31,25 +31,55 @@ export function Cart() {
                     onClick={() => navigate("/")}
                     className="mb-6 flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg transition-colors"
                 >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to Store
-                </button>
+                  <img
+                    src={item.game.imageUrl || ""}
+                    alt={item.game.title}
+                    className="h-36 w-full rounded-xl object-cover md:w-56"
+                  />
 
-                <div className="flex items-center gap-3 mb-8">
-                    <ShoppingCart className="w-8 h-8 text-orange-400" />
-                    <h1 className="text-4xl font-bold">Your Cart</h1>
-                </div>
+                  <div className="flex flex-1 flex-col justify-between">
+                    <div>
+                      <h2 className="mb-2 text-2xl font-semibold">{item.game.title}</h2>
+                      <p className="mb-2 text-slate-400">{getGameGenre(item.game)}</p>
+                      <p className="text-sm text-slate-300">
+                        {item.game.description || "Ready to add to your Citrus library."}
+                      </p>
+                    </div>
 
-                {cart.length === 0 ? (
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center">
-                        <h2 className="text-2xl font-semibold mb-3">Your cart is empty</h2>
-                        <p className="text-slate-400 mb-6">Add some games from the store to get started.</p>
+                    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-3">
                         <button
-                            onClick={() => navigate("/")}
-                            className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
+                          onClick={() => updateQuantity(item.game.id, item.quantity - 1)}
+                          className="rounded-lg bg-slate-800 p-2 transition-colors hover:bg-slate-700"
                         >
-                            Browse Games
+                          <Minus className="h-4 w-4" />
                         </button>
+
+                        <span className="w-8 text-center text-lg font-medium">
+                          {item.quantity}
+                        </span>
+
+                        <button
+                          onClick={() => updateQuantity(item.game.id, item.quantity + 1)}
+                          className="rounded-lg bg-slate-800 p-2 transition-colors hover:bg-slate-700"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <span className="text-2xl font-bold text-orange-400">
+                          ${(item.game.price * item.quantity).toFixed(2)}
+                        </span>
+
+                        <button
+                          onClick={() => removeFromCart(item.game.id)}
+                          className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 transition-colors hover:bg-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Remove
+                        </button>
+                      </div>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

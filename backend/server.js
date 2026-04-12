@@ -6,12 +6,16 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = require('./Models/users');
 const authRoutes = require('./routes/auth');
+const gameRoutes = require('./routes/games');
+const userRoutes = require('./routes/users');
 const sendVerificationEmail = require('./utils/sendEmail');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(['/api/auth', '/auth'], authRoutes);
+app.use('/api/games', gameRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/api/ping', async (req, res) => {
   res.status(200).json({ message: 'Hello World' });

@@ -1,40 +1,33 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ShoppingCart, User, Star, Tag, Search } from "lucide-react";
-import { games } from "../data/games";
+import { clearStoredUser, useStoredUser } from "../lib/authStorage";
+import { getGameDiscountPercentage, getGameGenre, isNewRelease } from "../lib/gameUtils";
 import { useCart } from "./cartContext";
+import { useGames } from "./gamesContext";
 import { useLibrary } from "./libraryContext";
 
 export function Store() {
   const navigate = useNavigate();
   const { addToCart, getCartItemCount } = useCart();
+  const { games, isLoading, error } = useGames();
   const { isGameOwned } = useLibrary();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
+  const user = useStoredUser();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user_data");
 
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      setIsLoggedIn(true);
-      setUsername(user.username);
-    }
-  }, []);
+  const featuredGame = [...games].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
 
   const handleLogout = () => {
-    localStorage.removeItem("user_data");
-    setIsLoggedIn(false);
-    setUsername("");
+    clearStoredUser();
     navigate("/login");
   };
 
   const handleAddToCart = (gameId: string) => {
-    if (!isLoggedIn) {
+    if (!user) {
       navigate("/signup");
       return;
     }
@@ -48,14 +41,16 @@ export function Store() {
   };
 
   const filteredGames = games.filter((game) => {
+    const query = searchQuery.trim().toLowerCase();
+    const genre = getGameGenre(game);
     const matchesSearch =
-      game.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      game.genre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      game.tags.some((tag) =>
-        tag.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      query.length === 0 ||
+      game.title.toLowerCase().includes(query) ||
+      genre.toLowerCase().includes(query) ||
+      (game.developer || "").toLowerCase().includes(query) ||
+      game.tags.some((tag) => tag.toLowerCase().includes(query));
 
-    const matchesFilter =
+    const matchesQuickFilter =
       activeFilter === "all" ||
       (activeFilter === "sale" && !!game.originalPrice) ||
       (activeFilter === "new" &&
@@ -69,28 +64,28 @@ export function Store() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-8">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+            <h1 className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-2xl font-bold text-transparent">
               Citrus
             </h1>
-            <nav className="hidden md:flex gap-6">
+            <nav className="hidden gap-6 md:flex">
               <button
                 onClick={() => navigate("/")}
-                className="text-slate-300 hover:text-white transition-colors"
+                className="text-slate-300 transition-colors hover:text-white"
               >
                 Store
               </button>
               <button
                 onClick={() => navigate("/library")}
-                className="text-slate-300 hover:text-white transition-colors"
+                className="text-slate-300 transition-colors hover:text-white"
               >
                 Library
               </button>
               <button
                 onClick={() => navigate("/community")}
-                className="text-slate-300 hover:text-white transition-colors"
+                className="text-slate-300 transition-colors hover:text-white"
               >
                 Community
               </button>
@@ -99,48 +94,48 @@ export function Store() {
 
           <div className="flex items-center gap-4">
             <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search games..."
-                className="bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2 w-64 focus:outline-none focus:border-orange-500 transition-colors text-sm"
+                className="w-64 rounded-lg border border-slate-700 bg-slate-800 py-2 pl-10 pr-4 text-sm transition-colors focus:border-orange-500 focus:outline-none"
               />
             </div>
 
             <button
               onClick={() => navigate("/cart")}
-              className="relative p-2 hover:bg-slate-800 rounded-lg transition-colors"
+              className="relative rounded-lg p-2 transition-colors hover:bg-slate-800"
             >
-              <ShoppingCart className="w-5 h-5" />
+              <ShoppingCart className="h-5 w-5" />
               {getCartItemCount() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-orange-500 text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-xs">
                   {getCartItemCount()}
                 </span>
               )}
             </button>
 
-            {!isLoggedIn ? (
+            {!user ? (
               <button
                 onClick={() => navigate("/signup")}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
+                className="flex items-center gap-2 rounded-lg bg-orange-600 px-4 py-2 transition-colors hover:bg-orange-700"
               >
-                <User className="w-4 h-4" />
+                <User className="h-4 w-4" />
                 Sign Up
               </button>
             ) : (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate("/profile")}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                  className="flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 transition-colors hover:bg-slate-700"
                 >
-                  <User className="w-4 h-4" />
-                  {username}
+                  <User className="h-4 w-4" />
+                  {user.username}
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
+                  className="rounded-lg bg-orange-600 px-4 py-2 transition-colors hover:bg-orange-700"
                 >
                   Log Out
                 </button>
@@ -150,28 +145,35 @@ export function Store() {
         </div>
       </header>
 
-      <section className="relative h-[500px] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black" />
-        <img
-          src={games[5].imageUrl}
-          alt="Featured game"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 flex items-center">
-          <div className="max-w-7xl mx-auto px-4 w-full">
-            <div className="max-w-xl">
-              <h2 className="text-5xl font-bold mb-4">{games[5].title}</h2>
-              <p className="text-xl text-slate-300 mb-6">{games[5].description}</p>
-              <div className="flex gap-4">
-                <button
-                  onClick={() =>
-                    isGameOwned(games[5].id)
-                      ? navigate("/library")
-                      : handleAddToCart(games[5].id)
-                  }
-                  className={`px-8 py-3 rounded-lg transition-colors ${isGameOwned(games[5].id)
-                    ? "bg-slate-700 hover:bg-slate-600"
-                    : "bg-orange-600 hover:bg-orange-700"
+      {featuredGame ? (
+        <section className="relative h-[500px] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black" />
+          <img
+            src={featuredGame.imageUrl || ""}
+            alt={featuredGame.title}
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 flex items-center">
+            <div className="mx-auto w-full max-w-7xl px-4">
+              <div className="max-w-xl">
+                <p className="mb-3 text-sm uppercase tracking-[0.3em] text-orange-300">
+                  Featured Pick
+                </p>
+                <h2 className="mb-4 text-5xl font-bold">{featuredGame.title}</h2>
+                <p className="mb-6 text-xl text-slate-300">
+                  {featuredGame.description || "Explore the latest standout release in the Citrus catalog."}
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <button
+                    onClick={() =>
+                      isGameOwned(featuredGame.id)
+                        ? navigate("/library")
+                        : handleAddToCart(featuredGame.id)
+                    }
+                    className={`rounded-lg px-8 py-3 transition-colors ${
+                      isGameOwned(featuredGame.id)
+                        ? "bg-slate-700 hover:bg-slate-600"
+                        : "bg-orange-600 hover:bg-orange-700"
                     }`}
                 >
                   {isGameOwned(games[5].id)
@@ -298,62 +300,86 @@ export function Store() {
                 )}
               </div>
 
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h4
-                    onClick={() => navigate(`/game/${game.id}`)}
-                    className="font-semibold text-lg cursor-pointer hover:text-orange-400 transition-colors"
+                return (
+                  <div
+                    key={game.id}
+                    className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 transition-all duration-300 hover:scale-105 hover:border-orange-500/50"
                   >
-                    {game.title}
-                  </h4>
-                  <div className="flex items-center gap-1 text-yellow-400">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span className="text-sm">{game.rating}</span>
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={game.imageUrl || ""}
+                        alt={game.title}
+                        className="h-full w-full object-cover"
+                      />
+                      {discount > 0 && (
+                        <div className="absolute right-2 top-2 flex items-center gap-1 rounded bg-orange-600 px-2 py-1">
+                          <Tag className="h-3 w-3" />
+                          <span className="text-xs">{discount}% OFF</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4">
+                      <div className="mb-2 flex items-start justify-between gap-3">
+                        <h4
+                          onClick={() => navigate(`/game/${game.id}`)}
+                          className="cursor-pointer text-lg font-semibold transition-colors hover:text-orange-400"
+                        >
+                          {game.title}
+                        </h4>
+                        <div className="flex items-center gap-1 text-yellow-400">
+                          <Star className="h-4 w-4 fill-current" />
+                          <span className="text-sm">{game.rating || 0}</span>
+                        </div>
+                      </div>
+
+                      <p className="mb-3 text-sm text-slate-400">{getGameGenre(game)}</p>
+
+                      <div className="mb-4 flex flex-wrap gap-1">
+                        {game.tags.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded bg-slate-800 px-2 py-1 text-xs"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          {game.originalPrice && (
+                            <span className="text-sm text-slate-500 line-through">
+                              ${game.originalPrice.toFixed(2)}
+                            </span>
+                          )}
+                          <span className="text-xl font-bold text-orange-400">
+                            ${game.price.toFixed(2)}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() =>
+                            isGameOwned(game.id)
+                              ? navigate("/library")
+                              : handleAddToCart(game.id)
+                          }
+                          className={`rounded-lg px-4 py-2 transition-colors ${
+                            isGameOwned(game.id)
+                              ? "bg-slate-700 hover:bg-slate-600"
+                              : "bg-orange-600 hover:bg-orange-700"
+                          }`}
+                        >
+                          {isGameOwned(game.id) ? "In Library" : "Add to Cart"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                <p className="text-sm text-slate-400 mb-3">{game.genre}</p>
-
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {game.tags.slice(0, 3).map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 bg-slate-800 text-xs rounded"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {game.originalPrice && (
-                      <span className="text-sm text-slate-500 line-through">
-                        ${game.originalPrice}
-                      </span>
-                    )}
-                    <span className="text-xl font-bold text-orange-400">
-                      ${game.price}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() =>
-                      isGameOwned(game.id)
-                        ? navigate("/library")
-                        : handleAddToCart(game.id)
-                    }
-                    className={`px-4 py-2 rounded-lg transition-colors ${isGameOwned(game.id)
-                      ? "bg-slate-700 hover:bg-slate-600"
-                      : "bg-orange-600 hover:bg-orange-700"
-                      }`}
-                  >
-                    {isGameOwned(game.id) ? "In Library" : "Add to Cart"}
-                  </button>
-                </div>
-              </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </section>
 
       <footer className="border-t border-slate-800 mt-20">
