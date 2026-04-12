@@ -1,2 +1,2 @@
 # COP4331_MERNProject
-Testing Branch
+Main stable branch for Citurs Market MERN stack
