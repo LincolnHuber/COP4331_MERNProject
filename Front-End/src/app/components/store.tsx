@@ -13,6 +13,8 @@ export function Store() {
   const [username, setUsername] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user_data");
@@ -56,9 +58,13 @@ export function Store() {
     const matchesFilter =
       activeFilter === "all" ||
       (activeFilter === "sale" && !!game.originalPrice) ||
-      (activeFilter === "new" && game.tags.some((tag) => tag.toLowerCase() === "new"));
+      (activeFilter === "new" &&
+        game.tags.some((tag) => tag.toLowerCase() === "new"));
 
-    return matchesSearch && matchesFilter;
+    const matchesMinPrice = minPrice === "" || game.price >= Number(minPrice);
+    const matchesMaxPrice = maxPrice === "" || game.price <= Number(maxPrice);
+
+    return matchesSearch && matchesFilter && matchesMinPrice && matchesMaxPrice;
   });
 
   return (
@@ -168,7 +174,9 @@ export function Store() {
                     : "bg-orange-600 hover:bg-orange-700"
                     }`}
                 >
-                  {isGameOwned(games[5].id) ? "In Library" : `Buy Now - $${games[5].price}`}
+                  {isGameOwned(games[5].id)
+                    ? "In Library"
+                    : `Buy Now - $${games[5].price}`}
                 </button>
                 <button
                   onClick={() => navigate(`/game/${games[5].id}`)}
@@ -183,37 +191,84 @@ export function Store() {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <h3 className="text-3xl font-bold">Featured Games</h3>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveFilter("all")}
-              className={`px-4 py-2 rounded-lg transition-colors text-sm ${activeFilter === "all"
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <h3 className="text-3xl font-bold">Featured Games</h3>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveFilter("all")}
+                className={`px-4 py-2 rounded-xl transition-colors text-sm ${activeFilter === "all"
                   ? "bg-slate-800 text-white"
                   : "bg-slate-900 hover:bg-slate-800 text-slate-400"
-                }`}
-            >
-              All
-            </button>
+                  }`}
+              >
+                All
+              </button>
+
+              <button
+                onClick={() => setActiveFilter("sale")}
+                className={`px-4 py-2 rounded-xl transition-colors text-sm ${activeFilter === "sale"
+                  ? "bg-slate-800 text-white"
+                  : "bg-slate-900 hover:bg-slate-800 text-slate-400"
+                  }`}
+              >
+                On Sale
+              </button>
+
+              <button
+                onClick={() => setActiveFilter("new")}
+                className={`px-4 py-2 rounded-xl transition-colors text-sm ${activeFilter === "new"
+                  ? "bg-slate-800 text-white"
+                  : "bg-slate-900 hover:bg-slate-800 text-slate-400"
+                  }`}
+              >
+                New
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="text-sm font-medium text-slate-300 mr-1">Price</div>
+
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
+                $
+              </span>
+              <input
+                type="number"
+                min="0"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                placeholder="Min"
+                className="bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-4 py-2.5 text-sm w-28 focus:outline-none focus:border-orange-500 transition-colors"
+              />
+            </div>
+
+            <span className="text-slate-500 text-sm">to</span>
+
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
+                $
+              </span>
+              <input
+                type="number"
+                min="0"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                placeholder="Max"
+                className="bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-4 py-2.5 text-sm w-28 focus:outline-none focus:border-orange-500 transition-colors"
+              />
+            </div>
 
             <button
-              onClick={() => setActiveFilter("sale")}
-              className={`px-4 py-2 rounded-lg transition-colors text-sm ${activeFilter === "sale"
-                  ? "bg-slate-800 text-white"
-                  : "bg-slate-900 hover:bg-slate-800 text-slate-400"
-                }`}
+              onClick={() => {
+                setMinPrice("");
+                setMaxPrice("");
+              }}
+              className="px-4 py-2.5 bg-slate-900 border border-slate-700 hover:bg-slate-800 rounded-xl transition-colors text-sm text-slate-300"
             >
-              On Sale
-            </button>
-
-            <button
-              onClick={() => setActiveFilter("new")}
-              className={`px-4 py-2 rounded-lg transition-colors text-sm ${activeFilter === "new"
-                  ? "bg-slate-800 text-white"
-                  : "bg-slate-900 hover:bg-slate-800 text-slate-400"
-                }`}
-            >
-              New
+              Clear
             </button>
           </div>
         </div>
@@ -234,7 +289,10 @@ export function Store() {
                   <div className="absolute top-2 right-2 bg-orange-600 px-2 py-1 rounded flex items-center gap-1">
                     <Tag className="w-3 h-3" />
                     <span className="text-xs">
-                      {Math.round(((game.originalPrice - game.price) / game.originalPrice) * 100)}% OFF
+                      {Math.round(
+                        ((game.originalPrice - game.price) / game.originalPrice) * 100
+                      )}
+                      % OFF
                     </span>
                   </div>
                 )}
@@ -299,44 +357,8 @@ export function Store() {
       </section>
 
       <footer className="border-t border-slate-800 mt-20">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h5 className="font-semibold mb-4">About</h5>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Press</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold mb-4">Support</h5>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Forums</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold mb-4">Legal</h5>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookies</a></li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold mb-4">Community</h5>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white transition-colors">Discord</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Reddit</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
-            © 2026 Citrus. All rights reserved.
-          </div>
+        <div className="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-slate-500">
+          © 2026 Citrus. All rights reserved.
         </div>
       </footer>
     </div>

@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { useCart } from "./cartContext";
-import { useLibrary } from "./libraryContext";
 
 
 
@@ -24,15 +23,6 @@ export function Cart() {
             navigate("/login");
         }
     }, [navigate]);
-
-    const { addGamesToLibrary } = useLibrary();
-
-    const handleCheckout = () => {
-        const gameIds = cart.map((item) => item.game.id);
-        addGamesToLibrary(gameIds);
-        clearCart();
-        navigate("/library");
-    };
 
     return (
         <div className="min-h-screen bg-black text-white">
@@ -136,7 +126,7 @@ export function Cart() {
                             </div>
 
                             <button
-                                onClick={handleCheckout}
+                                onClick={() => navigate("/checkout")}
                                 className="w-full py-3 bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors font-medium mb-3"
                             >
                                 Proceed to Checkout
