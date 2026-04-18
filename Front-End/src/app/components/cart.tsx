@@ -1,9 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
+import { useStoredUser } from "../lib/authStorage";
+import { getGameGenre } from "../lib/gameUtils";
 import { useCart } from "./cartContext";
-
-
 
 export function Cart() {
     const navigate = useNavigate();
@@ -27,6 +27,7 @@ export function Cart() {
     return (
         <div className="min-h-screen bg-black text-white">
             <div className="max-w-6xl mx-auto px-6 py-8">
+                
                 <button
                     onClick={() => navigate("/")}
                     className="mb-6 flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg transition-colors"
@@ -35,25 +36,27 @@ export function Cart() {
                     Back to Store
                 </button>
 
-                <div className="flex items-center gap-3 mb-8">
+                <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
                     <ShoppingCart className="w-8 h-8 text-orange-400" />
-                    <h1 className="text-4xl font-bold">Your Cart</h1>
-                </div>
+                    Your Cart
+                </h1>
 
                 {cart.length === 0 ? (
-                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-10 text-center">
-                        <h2 className="text-2xl font-semibold mb-3">Your cart is empty</h2>
-                        <p className="text-slate-400 mb-6">Add some games from the store to get started.</p>
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center">
+                        <ShoppingCart className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                        <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
+                        <p className="text-slate-400 mb-6">Looks like you haven't added any games yet.</p>
                         <button
                             onClick={() => navigate("/")}
-                            className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors"
+                            className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors font-medium"
                         >
-                            Browse Games
+                            Browse Store
                         </button>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-2 space-y-4">
+                            
                             {cart.map((item) => (
                                 <div
                                     key={item.game.id}
@@ -68,7 +71,7 @@ export function Cart() {
                                     <div className="flex-1 flex flex-col justify-between">
                                         <div>
                                             <h2 className="text-2xl font-semibold mb-2">{item.game.title}</h2>
-                                            <p className="text-slate-400 mb-2">{item.game.genre}</p>
+                                            <p className="text-slate-400 mb-2">{getGameGenre(item.game)}</p>
                                             <p className="text-slate-300 text-sm">{item.game.description}</p>
                                         </div>
 

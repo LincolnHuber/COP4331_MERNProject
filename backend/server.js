@@ -5,13 +5,18 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = require('./Models/users');
+const Game = require('./Models/games');
 const authRoutes = require('./routes/auth');
+const gameRoutes = require('./routes/games');
+const userRoutes = require('./routes/users');
 const sendVerificationEmail = require('./utils/sendEmail');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(['/api/auth', '/auth'], authRoutes);
+app.use('/api/games', gameRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/api/ping', async (req, res) => {
   res.status(200).json({ message: 'Hello World' });
@@ -137,6 +142,48 @@ app.post(['/api/login', '/login'], async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+// ─── STORE GAMES ROUTE ────────────────────────────────────────────────────────
+app.get(['/api/games', '/games'], async (req, res) => {
+  try {
+    // This fetches every single game document from your MongoDB Atlas database
+    const games = await Game.find({});
+    res.status(200).json(games);
+  } catch (err) {
+    console.error("Games fetch error:", err);
+    res.status(500).json({ error: 'Server error fetching games' });
+  }
+});
+
+// ─── FETCH USER LIBRARY ───────────────────────────────────────────────────────
+app.get(['/api/library/:id', '/library/:id'], async (req, res) => {
+  try {
+    // Find the user and .populate() automatically turns the ObjectIds into full Game objects!
+    const user = await User.findById(req.params.id).populate('gamesLibrary');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    res.status(200).json(user.gamesLibrary);
+  } catch (err) {
+    console.error("Library fetch error:", err);
+    res.status(500).json({ error: 'Server error fetching library' });
+  }
+});
+
+// ─── ADD GAMES TO LIBRARY (CHECKOUT) ──────────────────────────────────────────
+app.post(['/api/library/add', '/library/add'], async (req, res) => {
+  try {
+    const { userId, gameIds } = req.body;
+    
+    await User.findByIdAndUpdate(userId, {
+        $addToSet: { gamesLibrary: { $each: gameIds } }
+    });
+
+    const updatedUser = await User.findById(userId).populate('gamesLibrary');
+    res.status(200).json(updatedUser.gamesLibrary);
+  } catch (err) {
+    console.error("Add to library error:", err);
+    res.status(500).json({ error: 'Server error adding to library' });
   }
 });
 

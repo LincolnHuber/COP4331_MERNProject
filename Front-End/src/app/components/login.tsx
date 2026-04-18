@@ -1,12 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Mail, Lock, ArrowLeft, LogIn } from "lucide-react";
+import { setStoredUser } from "../lib/authStorage";
 
 export function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +47,7 @@ export function Login() {
         return;
       }
 
-      localStorage.setItem("user_data", JSON.stringify(data.user));
+      setStoredUser(data.user);
       navigate("/");
     } catch (err) {
       setError("Could not connect to server");
@@ -51,11 +61,11 @@ export function Login() {
       <div className="relative w-full max-w-md">
         {/* Back button */}
         <button
-          onClick={() => navigate("/")}
+          onClick={handleBack}
           className="absolute -top-12 left-0 flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Store
+          Back
         </button>
 
         <div className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-8">
