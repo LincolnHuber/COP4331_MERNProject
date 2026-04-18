@@ -1,2 +1,4 @@
 # COP4331_MERNProject
-Main stable branch for Citurs Market MERN stack
+Stable branch for citrus marketplace MERN stack project
+
+Accesible at citrusmarket.me
