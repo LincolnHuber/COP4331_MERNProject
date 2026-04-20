@@ -24,7 +24,6 @@ export const router = createBrowserRouter([
       { path: "verify-email", Component: VerifyEmail },
       { path: "login", Component: Login },
       { path: "library", Component: Library },
-      { path: "community", Component: Community },
       { path: "cart", Component: Cart },
       { path: "profile", Component: Profile },
       { path: "game/:id", Component: GameDetails },
