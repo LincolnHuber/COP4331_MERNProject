@@ -15,12 +15,11 @@ export function VerifyEmail() {
     // Get email from sessionStorage
     const pendingEmail = sessionStorage.getItem("pendingEmail");
     if (!pendingEmail) {
-      navigate("/signup");
+      navigate("/login");
       return;
     }
     setEmail(pendingEmail);
 
-    // Simulate sending verification email
     console.log(`Verification email sent to ${pendingEmail}`);
   }, [navigate]);
 
