@@ -1,0 +1,76 @@
+# =========================
+# Android / Gradle
+# =========================
+.gradle/
+build/
+*/build/
+captures/
+.externalNativeBuild/
+.cxx/
+local.properties
+
+# Gradle wrapper logs
+gradle-app.setting
+
+# =========================
+# Android Studio / IntelliJ
+# =========================
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# User-specific IDE settings
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/compiler.xml
+
+# =========================
+# Keystore & signing
+# =========================
+*.jks
+*.keystore
+*.pem
+*.p12
+*.key
+signing.properties
+
+# =========================
+# Log / temp files
+# =========================
+*.log
+*.tmp
+*.temp
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Kotlin / Java
+# =========================
+*.class
+out/
+
+# =========================
+# NDK
+# =========================
+obj/
+.libs/
+
+# =========================
+# Google Services (generated)
+# =========================
+google-services.json
+
+# =========================
+# Secrets / environment
+# =========================
+.env
+.env.*
