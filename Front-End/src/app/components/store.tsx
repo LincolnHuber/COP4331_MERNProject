@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { ShoppingCart, User, Star, Tag, Search } from "lucide-react";
 import { clearStoredUser, useStoredUser } from "../lib/authStorage";
 import { getGameGenre } from "../lib/gameUtils";
