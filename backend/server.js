@@ -5,116 +5,18 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const User = require('./Models/users');
+const Game = require('./Models/games');
 const authRoutes = require('./routes/auth');
+const gameRoutes = require('./routes/games');
+const userRoutes = require('./routes/users');
 const sendVerificationEmail = require('./utils/sendEmail');
-
-var cardList =
-  [
-    'Roy Campanella',
-    'Paul Molitor',
-    'Tony Gwynn',
-    'Dennis Eckersley',
-    'Reggie Jackson',
-    'Gaylord Perry',
-    'Buck Leonard',
-    'Rollie Fingers',
-    'Charlie Gehringer',
-    'Wade Boggs',
-    'Carl Hubbell',
-    'Dave Winfield',
-    'Jackie Robinson',
-    'Ken Griffey, Jr.',
-    'Al Simmons',
-    'Chuck Klein',
-    'Mel Ott',
-    'Mark McGwire',
-    'Nolan Ryan',
-    'Ralph Kiner',
-    'Yogi Berra',
-    'Goose Goslin',
-    'Greg Maddux',
-    'Frankie Frisch',
-    'Ernie Banks',
-    'Ozzie Smith',
-    'Hank Greenberg',
-    'Kirby Puckett',
-    'Bob Feller',
-    'Dizzy Dean',
-    'Joe Jackson',
-    'Sam Crawford',
-    'Barry Bonds',
-    'Duke Snider',
-    'George Sisler',
-    'Ed Walsh',
-    'Tom Seaver',
-    'Willie Stargell',
-    'Bob Gibson',
-    'Brooks Robinson',
-    'Steve Carlton',
-    'Joe Medwick',
-    'Nap Lajoie',
-    'Cal Ripken, Jr.',
-    'Mike Schmidt',
-    'Eddie Murray',
-    'Tris Speaker',
-    'Al Kaline',
-    'Sandy Koufax',
-    'Willie Keeler',
-    'Pete Rose',
-    'Robin Roberts',
-    'Eddie Collins',
-    'Lefty Gomez',
-    'Lefty Grove',
-    'Carl Yastrzemski',
-    'Frank Robinson',
-    'Juan Marichal',
-    'Warren Spahn',
-    'Pie Traynor',
-    'Roberto Clemente',
-    'Harmon Killebrew',
-    'Satchel Paige',
-    'Eddie Plank',
-    'Josh Gibson',
-    'Oscar Charleston',
-    'Mickey Mantle',
-    'Cool Papa Bell',
-    'Johnny Bench',
-    'Mickey Cochrane',
-    'Jimmie Foxx',
-    'Jim Palmer',
-    'Cy Young',
-    'Eddie Mathews',
-    'Honus Wagner',
-    'Paul Waner',
-    'Grover Alexander',
-    'Rod Carew',
-    'Joe DiMaggio',
-    'Joe Morgan',
-    'Stan Musial',
-    'Bill Terry',
-    'Rogers Hornsby',
-    'Lou Brock',
-    'Ted Williams',
-    'Bill Dickey',
-    'Christy Mathewson',
-    'Willie McCovey',
-    'Lou Gehrig',
-    'George Brett',
-    'Hank Aaron',
-    'Harry Heilmann',
-    'Walter Johnson',
-    'Roger Clemens',
-    'Ty Cobb',
-    'Whitey Ford',
-    'Willie Mays',
-    'Rickey Henderson',
-    'Babe Ruth'
-];
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(['/api/auth', '/auth'], authRoutes);
+app.use('/api/games', gameRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/api/ping', async (req, res) => {
   res.status(200).json({ message: 'Hello World' });
@@ -205,16 +107,6 @@ app.post('/api/resend-verification', async (req, res) => {
   }
 });
 
-app.post('/api/addcard', async (req, res, next) => {
-  var error = '';
-  const { userId, card } = req.body;
-
-  cardList.push(card);
-
-  var ret = { error: error };
-  res.status(200).json(ret);
-});
-
 app.post(['/api/login', '/login'], async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -250,6 +142,48 @@ app.post(['/api/login', '/login'], async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+// ─── STORE GAMES ROUTE ────────────────────────────────────────────────────────
+app.get(['/api/games', '/games'], async (req, res) => {
+  try {
+    // This fetches every single game document from your MongoDB Atlas database
+    const games = await Game.find({});
+    res.status(200).json(games);
+  } catch (err) {
+    console.error("Games fetch error:", err);
+    res.status(500).json({ error: 'Server error fetching games' });
+  }
+});
+
+// ─── FETCH USER LIBRARY ───────────────────────────────────────────────────────
+app.get(['/api/library/:id', '/library/:id'], async (req, res) => {
+  try {
+    // Find the user and .populate() automatically turns the ObjectIds into full Game objects!
+    const user = await User.findById(req.params.id).populate('gamesLibrary');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    res.status(200).json(user.gamesLibrary);
+  } catch (err) {
+    console.error("Library fetch error:", err);
+    res.status(500).json({ error: 'Server error fetching library' });
+  }
+});
+
+// ─── ADD GAMES TO LIBRARY (CHECKOUT) ──────────────────────────────────────────
+app.post(['/api/library/add', '/library/add'], async (req, res) => {
+  try {
+    const { userId, gameIds } = req.body;
+    
+    await User.findByIdAndUpdate(userId, {
+        $addToSet: { gamesLibrary: { $each: gameIds } }
+    });
+
+    const updatedUser = await User.findById(userId).populate('gamesLibrary');
+    res.status(200).json(updatedUser.gamesLibrary);
+  } catch (err) {
+    console.error("Add to library error:", err);
+    res.status(500).json({ error: 'Server error adding to library' });
   }
 });
 

@@ -45,12 +45,12 @@ export function SignUp() {
       }
 
       sessionStorage.setItem("pendingEmail", email);
-      navigate("/verify-email");
+      navigate("/waiting-for-verification");
     } catch (err) {
       setError("Could not connect to server");
     }
   };
-  
+
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
@@ -165,13 +165,21 @@ export function SignUp() {
           {/* Terms */}
           <p className="text-xs text-slate-500 text-center mt-6">
             By creating an account, you agree to our{" "}
-            <a href="#" className="text-orange-400 hover:text-orange-300">
+            <button
+              type="button"
+              onClick={() => navigate("/terms")}
+              className="text-orange-400 hover:text-orange-300"
+            >
               Terms of Service
-            </a>{" "}
+            </button>{" "}
             and{" "}
-            <a href="#" className="text-orange-400 hover:text-orange-300">
+            <button
+              type="button"
+              onClick={() => navigate("/privacy")}
+              className="text-orange-400 hover:text-orange-300"
+            >
               Privacy Policy
-            </a>
+            </button>
           </p>
         </div>
       </div>
