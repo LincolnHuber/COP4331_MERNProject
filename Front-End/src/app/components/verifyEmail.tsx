@@ -15,12 +15,11 @@ export function VerifyEmail() {
     // Get email from sessionStorage
     const pendingEmail = sessionStorage.getItem("pendingEmail");
     if (!pendingEmail) {
-      navigate("/signup");
+      navigate("/login");
       return;
     }
     setEmail(pendingEmail);
 
-    // Simulate sending verification email
     console.log(`Verification email sent to ${pendingEmail}`);
   }, [navigate]);
 
@@ -182,7 +181,7 @@ export function VerifyEmail() {
           {/* Back to signup */}
           <div className="mt-6 text-center">
             <button
-              onClick={() => navigate("/signup")}
+              onClick={() => navigate("/login")}
               className="text-slate-500 hover:text-slate-400 text-sm transition-colors"
             >
               Use a different email
