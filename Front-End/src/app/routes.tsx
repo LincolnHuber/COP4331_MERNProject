@@ -5,7 +5,6 @@ import { SignUp } from "./components/signUp.tsx";
 import { VerifyEmail } from "./components/verifyEmail.tsx";
 import { Login } from "./components/login.tsx";
 import { Library } from "./components/library.tsx";
-import { Community } from "./components/community.tsx";
 import { Cart } from "./components/cart.tsx";
 import { Profile } from "./components/profile.tsx";
 import { GameDetails } from "./components/gameDetails.tsx";
