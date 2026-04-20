@@ -88,12 +88,6 @@ export function Store() {
               >
                 Library
               </button>
-              <button
-                onClick={() => navigate("/community")}
-                className="text-slate-300 hover:text-white transition-colors"
-              >
-                Community
-              </button>
             </nav>
           </div>
 
