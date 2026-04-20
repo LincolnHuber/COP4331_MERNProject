@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ShoppingCart, User, Star, Tag, Search } from "lucide-react";
-import { games } from "../data/games";
+import { useGames } from "./gamesContext";
+import { getGameGenre } from "../lib/gameUtils";
 import { useCart } from "./cartContext";
 import { useLibrary } from "./libraryContext";
 
@@ -15,10 +16,12 @@ export function Store() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const { games } = useGames();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user_data");
-
+    const featuredGame = games.length > 0 ? [...games].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0] : null;
+    
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setIsLoggedIn(true);
@@ -147,7 +150,7 @@ export function Store() {
       <section className="relative h-[500px] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black" />
         <img
-          src={games[5].imageUrl}
+          src={featuredGame.imageUrl}
           alt="Featured game"
           width={1200}
           height={500}
@@ -157,26 +160,26 @@ export function Store() {
         <div className="absolute inset-0 flex items-center">
           <div className="max-w-7xl mx-auto px-4 w-full">
             <div className="max-w-xl">
-              <h2 className="text-5xl font-bold mb-4">{games[5].title}</h2>
-              <p className="text-xl text-slate-300 mb-6">{games[5].description}</p>
+              <h2 className="text-5xl font-bold mb-4">{featuredGame.title}</h2>
+              <p className="text-xl text-slate-300 mb-6">{featuredGame.description}</p>
               <div className="flex gap-4">
                 <button
                   onClick={() =>
-                    isGameOwned(games[5].id)
+                    isGameOwned(featuredGame.id)
                       ? navigate("/library")
-                      : handleAddToCart(games[5].id)
+                      : handleAddToCart(featuredGame.id)
                   }
-                  className={`px-8 py-3 rounded-lg transition-colors ${isGameOwned(games[5].id)
+                  className={`px-8 py-3 rounded-lg transition-colors ${isGameOwned(featuredGame.id)
                     ? "bg-slate-700 hover:bg-slate-600"
                     : "bg-orange-600 hover:bg-orange-700"
                     }`}
                 >
-                  {isGameOwned(games[5].id)
+                  {isGameOwned(featuredGame.id)
                     ? "In Library"
-                    : `Buy Now - $${games[5].price}`}
+                    : `Buy Now - $${featuredGame.price}`}
                 </button>
                 <button
-                  onClick={() => navigate(`/game/${games[5].id}`)}
+                  onClick={() => navigate(`/game/${featuredGame.id}`)}
                   className="px-8 py-3 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
                 >
                   Learn More
