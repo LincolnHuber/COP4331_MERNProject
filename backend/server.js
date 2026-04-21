@@ -15,12 +15,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(['/api/auth', '/auth'], authRoutes);
-app.use('/api/games', gameRoutes);
-app.use('/api/users', userRoutes);
-
-app.get('/api/ping', async (req, res) => {
-  res.status(200).json({ message: 'Hello World' });
-});
+app.use(['/api/games', '/games'], gameRoutes);
+app.use(['/api/users', '/users'], userRoutes);
+app.get(['/api/ping', '/ping'], async (req, res) => { res.json({ message: 'Hello World' }); });
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Successfully connected to MongoDB!'))
