@@ -21,9 +21,10 @@ function mapMongoId(game: any): Game {
 
 export async function fetchGames(): Promise<Game[]> {
   const response = await fetch("/api/games");
-  const data = await parseResponse<any[]>(response);
-  //map the incoming MongoDB array to fix the IDs
-  return data.map(mapMongoId);
+  const data = await parseResponse<any>(response);
+
+  const games = Array.isArray(data) ? data : data.games ?? [];
+  return games.map(mapMongoId);
 }
 
 export async function fetchLibrary(userId: string): Promise<Game[]> {
