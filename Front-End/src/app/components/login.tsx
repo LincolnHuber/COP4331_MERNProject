@@ -9,15 +9,6 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-      return;
-    }
-
-    navigate("/");
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -58,17 +49,18 @@ export function Login() {
     <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gradient-to-br from-orange-900/20 via-black to-black" />
 
-      <div className="relative w-full max-w-md">
-        {/* Back button */}
-        <button
-          onClick={handleBack}
-          className="absolute -top-12 left-0 flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
-
+    <div className="relative w-full max-w-md">
         <div className="bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-8">
+          
+          {/* Back button */}
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Store
+          </button>
+
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-block p-3 bg-orange-600/10 rounded-full mb-4">
