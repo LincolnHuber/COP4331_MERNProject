@@ -18,6 +18,34 @@ app.use(['/api/auth', '/auth'], authRoutes);
 app.use(['/api/games', '/games'], gameRoutes);
 app.use(['/api/users', '/users'], userRoutes);
 app.get(['/api/ping', '/ping'], async (req, res) => { res.json({ message: 'Hello World' }); });
+app.post(['/api/test/verify', '/test/verify'], async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'email is required' });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { email: email.toLowerCase().trim() },
+      { isVerified: true },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'No user with that email' });
+    }
+
+    res.status(200).json({
+      message: 'User auto-verified (demo shortcut)',
+      email: user.email,
+      isVerified: user.isVerified,
+    });
+  } catch (err) {
+    console.error('Demo verify error:', err);
+    res.status(500).json({ error: 'Server error during demo verify' });
+  }
+});
+
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Successfully connected to MongoDB!'))
